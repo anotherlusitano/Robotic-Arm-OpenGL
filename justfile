@@ -1,7 +1,7 @@
-# Compile all source files and produce the 'main' executable
+# Build the project and produce the 'main' executable
 build:
-    g++ main.cpp keys.cpp -o main -lGL -lglut
+    g++ main.cpp -o main -lGL -lglut
 
-# Build the project (if needed) and run the executable
+# Build the project (if needed) and run it
 run: build
     ./main

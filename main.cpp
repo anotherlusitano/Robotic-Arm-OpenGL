@@ -1,25 +1,37 @@
 #include <GL/freeglut.h>
-#include "keys.h"
 
-// Window dimensions in pixels
+// Window dimensions
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
-// Called by GLUT on every frame redraw.
-// Clears the screen and swaps the front and back buffers (double buffering).
+// Handles the display
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glutSwapBuffers();
 }
 
+// Handles the keys to control the robotic arm
+void keyboard(unsigned char key, int x, int y) {
+    switch (key) {
+        case 'w':
+        case 'W':
+            break;
+        case 'a':
+        case 'A':
+            break;
+        case 's':
+        case 'S':
+            break;
+        case 'd':
+        case 'D':
+            break;
+    }
+}
+
 int main(int argc, char** argv) {
-    // Initialize GLUT with command-line arguments
+    // Initialize GLUT
     glutInit(&argc, argv);
-
-    // Use double buffering and RGB color mode
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-
-    // Set the initial window size
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     // Center the window on the screen
@@ -27,16 +39,12 @@ int main(int argc, char** argv) {
     int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
     glutInitWindowPosition((screenWidth - WINDOW_WIDTH) / 2, (screenHeight - WINDOW_HEIGHT) / 2);
 
-    // Create the application window with its title
     glutCreateWindow("Sort the Boxes or be Fired");
 
-    // Register the display callback (called each frame)
+    // Register callbacks
     glutDisplayFunc(display);
-
-    // Register the keyboard callback (handles W, A, S, D input)
     glutKeyboardFunc(keyboard);
 
-    // Enter the GLUT event loop (runs until the window is closed)
     glutMainLoop();
     return 0;
 }
