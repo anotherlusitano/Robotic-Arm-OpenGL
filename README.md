@@ -11,3 +11,9 @@ After picking up a package, the user must decide which destination box is correc
 Here is the image representation of how the program works:
 
 <img width="1024" height="768" alt="image" src="https://github.com/user-attachments/assets/83df2fa5-de5a-44c3-b726-64f4eb464f50" />
+
+## Support ☕
+
+If you enjoy this project, consider buying me a coffee!
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/anotherlusitano)
