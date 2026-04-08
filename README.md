@@ -1,4 +1,4 @@
-# Sort the Boxes 📦 or be Fired 🔥
+# Robotic Arm Program
 This project was made for the Human-Computer Interaction (Computação Humano-Máquina) subject.
 The goal was to learn OpenGL and C++ and how they can be used to create systems that communicate effectively with humans.
 
