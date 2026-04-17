@@ -14,6 +14,22 @@ const float POSICAO_Y_CAIXA = 100.0f;    // Distância do fundo
 
 enum TipoCaixa { CAIXA_VERMELHA, CAIXA_AZUL, CAIXA_VERDE, CAIXA_FANTASMA };
 
+// Função para converter o tipo da caixa em uma string legível
+const char *tipoCaixaToString(TipoCaixa tipo) {
+  switch (tipo) {
+  case CAIXA_VERMELHA:
+    return "Vermelho";
+  case CAIXA_AZUL:
+    return "Azul";
+  case CAIXA_VERDE:
+    return "Verde";
+  case CAIXA_FANTASMA:
+    return "Fantasma";
+  default:
+    return "Desconecido";
+  }
+}
+
 struct Cor {
   float r;
   float g;
@@ -21,12 +37,30 @@ struct Cor {
 };
 
 struct Caixa {
-  TipoCaixa tipo;
-  Cor cor;
-  float x, y;
+  TipoCaixa tipo; // Tipo da caixa
+  Cor cor;        // Cor da caixa
+  float x, y;     // Coordenadas da caixa
 };
 
 std::vector<Caixa *> listaDeCaixas = {};
+
+// Estrutura para representar um caixote (recipiente para as caixas)
+struct Caixote {
+  float x, y;           // Coordenadas do caixote
+  TipoCaixa tipoAceite; // Tipo de caixa que aceita
+  Cor cor;              // Cor do caixote
+};
+
+// Lista de caixotes com suas coordenadas e tipos que aceitam
+// Nota: As coordenadas podem ser ajustadas conforme necessário
+const Caixote caixotes[] = {
+    // Caixote Vermelho (esquerda)
+    {-0.2f, 0.65f, CAIXA_VERMELHA, {1.0f, 0.0f, 0.0f}},
+    // Caixote Azul (centro)
+    {0.2f, 0.65f, CAIXA_AZUL, {0.0f, 0.0f, 1.0f}},
+    // Caixote Verde (direita)
+    {0.6f, 0.65f, CAIXA_VERDE, {0.0f, 1.0f, 0.0f}}};
+const int NUM_CAIXOTES = 3;
 
 // Variáveis globais para os ângulos do braço robótico
 float anguloOmbro = 180.0f;
@@ -159,6 +193,112 @@ void desenharRobo() {
   glPopMatrix();
 }
 
+// Função para desenhar um único caixote em coordenadas normalizadas
+void desenharCaixote(float x, float y, Cor cor) {
+  float larguraCaixote =
+      0.15f;                   // Largura do caixote em coordenadas normalizadas
+  float alturaCaixote = 0.15f; // Altura do caixote em coordenadas normalizadas
+  float larguraBorda = 0.01f;  // Espessura da borda
+
+  // Desenha o interior do caixote
+  glColor3f(cor.r * 0.7f, cor.g * 0.7f,
+            cor.b * 0.7f); // Cor mais escura para o interior
+  glBegin(GL_QUADS);
+  glVertex2f(x - larguraCaixote / 2, y - alturaCaixote / 2);
+  glVertex2f(x + larguraCaixote / 2, y - alturaCaixote / 2);
+
+  // Usamos o `-0.05` para criar um pequeno espaço entre o fundo e a borda
+  // superior do caixote
+  glVertex2f(x + larguraCaixote / 2, y + alturaCaixote / 2 - 0.05);
+  glVertex2f(x - larguraCaixote / 2, y + alturaCaixote / 2 - 0.05);
+  glEnd();
+
+  // Desenha as bordas (fundo e lados)
+  glColor3f(0, 0, 0); // Cor completa para as bordas
+  glLineWidth(3.0f);
+  glBegin(GL_LINE_STRIP);
+  // Linha de baixo (fundo)
+  glVertex2f(x - larguraCaixote / 2, y - alturaCaixote / 2);
+  glVertex2f(x + larguraCaixote / 2, y - alturaCaixote / 2);
+  // Linha da direita
+  glVertex2f(x + larguraCaixote / 2, y + alturaCaixote / 2);
+  glEnd();
+  // Linha da esquerda
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(x - larguraCaixote / 2, y + alturaCaixote / 2);
+  glVertex2f(x - larguraCaixote / 2, y - alturaCaixote / 2);
+  glEnd();
+  glLineWidth(1.0f);
+}
+
+// Função para desenhar todos os caixotes
+void desenharTodosCaixotes() {
+  for (int i = 0; i < NUM_CAIXOTES; i++) {
+    desenharCaixote(caixotes[i].x, caixotes[i].y, caixotes[i].cor);
+  }
+}
+
+// Função para verificar se a caixa apanhada está acima de um caixote
+// Retorna o índice do caixote se estiver acima, ou -1 caso contrário
+// NOTA: Esta função itera sobre todos os caixotes (máximo 3)
+// Para nosso caso de uso, não há preocupação com a performance pois o número de
+// caixotes é pequeno
+int verificarSobreCaixote(float caixaX, float caixaY) {
+  float margem = 0.05f; // Margem de tolerância em coordenadas normalizadas
+
+  for (int i = 0; i < NUM_CAIXOTES; i++) {
+    float caixoteLargura = 0.15f;
+    float caixoteAltura = 0.15f;
+
+    // Verifica se a caixa está dentro dos limites horizontais e verticais do
+    // caixote
+    if (caixaX >= caixotes[i].x - caixoteLargura / 2 - margem &&
+        caixaX <= caixotes[i].x + caixoteLargura / 2 + margem &&
+        caixaY >= caixotes[i].y - caixoteAltura / 2 - margem &&
+        caixaY <= caixotes[i].y + caixoteAltura / 2 + margem) {
+      return i; // Retorna o índice do caixote
+    }
+  }
+
+  return -1; // Não encontrou nenhum caixote
+}
+
+// Função para depositar a caixa apanhada num caixote
+// Verifica se o tipo da caixa corresponde ao tipo que o caixote aceita
+void depositarCaixa() {
+  if (caixaApanhada == nullptr) {
+    printf("Nenhuma caixa apanhada para depositar!\n");
+    return;
+  }
+
+  // Obtém a posição atual da caixa apanhada
+  float dedoX, dedoY;
+  obterPosicaoDedos(dedoX, dedoY);
+
+  // Verifica se está acima de algum caixote
+  int indiceCaixote = verificarSobreCaixote(dedoX, dedoY);
+
+  if (indiceCaixote == -1) {
+    printf("Caixa não está em cima de nenhum caixote!\n");
+    return;
+  }
+
+  // Verifica se o tipo da caixa corresponde ao tipo que o caixote aceita
+  if (caixaApanhada->tipo == caixotes[indiceCaixote].tipoAceite) {
+    // Sucesso! Deposita a caixa
+    delete caixaApanhada;
+    caixaApanhada = nullptr;
+    printf("Caixa depositada com sucesso!\n");
+    // Descomentar a linha abaixo para mostrar quantas caixas faltam.
+    // printf("Caixas restantes: %lu\n", listaDeCaixas.size());
+  } else {
+    printf("Erro: A caixa do tipo %s não pode ser depositada no caixote que "
+           "aceita o tipo %s!\n",
+           tipoCaixaToString(caixaApanhada->tipo),
+           tipoCaixaToString(caixotes[indiceCaixote].tipoAceite));
+  }
+}
+
 // Função para desenhar uma única caixa numa posição determinada (em coordenadas
 // de pixel)
 void desenharCaixa(float pixelX, float pixelY, Cor cor) {
@@ -229,6 +369,7 @@ void display() {
 
   desenharTodasAsCaixas();
   desenharRobo();
+  desenharTodosCaixotes();
 
   // Desenha a caixa apanhada na posição dos dedos
   if (caixaApanhada != nullptr) {
@@ -292,6 +433,9 @@ void teclado(unsigned char tecla, int x, int y) {
     break;
   }
   case ' ': {
+    // Verifica se a caixa apanhada está acima de um caixote e tenta deposita-la
+    depositarCaixa();
+
     // Tecla de espaço para apanhar/pegar a caixa
     if (!listaDeCaixas.empty()) {
       float dedoX, dedoY;
