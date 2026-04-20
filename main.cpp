@@ -128,7 +128,7 @@ void desenharRobo() {
   // ==========================================
   glRotatef(anguloOmbro, 0.0f, 0.0f, 1.0f);
 
-  glColor3f(0.2f, 0.5f, 0.8f); // Blue
+  glColor3f(1.0f, 0.5f, 0); // Laranja
   glBegin(GL_POLYGON);
   glVertex2f(0.0f, -0.05f);
   glVertex2f(0.4f, -0.05f); // Shoulder length: 0.4
@@ -145,7 +145,7 @@ void desenharRobo() {
 
   glRotatef(anguloCotovelo, 0.0f, 0.0f, 1.0f);
 
-  glColor3f(0.8f, 0.2f, 0.2f); // Red
+  glColor3f(0.1f, 0, 0.1f); // Cinzento
   glBegin(GL_POLYGON);
   glVertex2f(0.0f, -0.04f);
   glVertex2f(0.3f, -0.04f); // Elbow length: 0.3
@@ -159,7 +159,7 @@ void desenharRobo() {
   glTranslatef(0.3f, 0.0f, 0.0f);
   glRotatef(anguloMao, 0.0f, 0.0f, 1.0f);
 
-  glColor3f(0.0f, 0.5f, 0.0f); // Green
+  glColor3f(1.0f, 0.5f, 0); // Laranja
   glBegin(GL_POLYGON);
   glVertex2f(0.0f, -0.05f);
   glVertex2f(0.1f, -0.05f); // Hand length: 0.1
@@ -171,7 +171,7 @@ void desenharRobo() {
   // 4. OS DEDOS
   // ==========================================
   glTranslatef(0.1f, 0.025f, 0.0f);
-  glColor3f(0.5f, 0.1f, 0.1f); // Dark Red
+  glColor3f(0.1f, 0, 0.1f); // Cinzento
 
   glBegin(GL_POLYGON);
   glVertex2f(0.0f, -0.025f);
