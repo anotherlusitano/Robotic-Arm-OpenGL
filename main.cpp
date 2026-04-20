@@ -8,7 +8,7 @@ const int LARGURA_JANELA = 800;
 const int ALTURA_JANELA = 600;
 
 // Configurações de exibição da caixa
-const float TAMANHO_CAIXA = 60.0f;
+float TAMANHO_CAIXA = 60.0f;
 const float ESPACAMENTO_CAIXAS = 100.0f; // Espaço entre caixas
 const float POSICAO_Y_CAIXA = 100.0f;    // Distância do fundo
 
@@ -307,9 +307,33 @@ void desenharCaixa(float pixelX, float pixelY, Cor cor) {
   float normalizadoX = (2.0f * pixelX / LARGURA_JANELA) - 1.0f;
   float normalizadoY = (2.0f * pixelY / ALTURA_JANELA) - 1.0f;
 
+  // Cor da borda (preto por padrão, vermelho se for caixa vermelha)
+  float corBorda[] = {0.0f, 0.0f, 0.0f};
+
+  // Caso seja uma caixa verde, aumentamos o tamanho da caixa para 75 pixels
+  if (cor.g == 1.0f) {
+    TAMANHO_CAIXA = 75.0f;
+  }
+
   // Converte tamanho da caixa de pixels para coordenadas normalizadas
   float tamanhonormalizado = (2.0f * TAMANHO_CAIXA / LARGURA_JANELA);
 
+  // Caso seja uma caixa vermelha, desenha em wireframe e definimos uma borda
+  // vermelha
+  if (cor.r == 1.0f) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    corBorda[0] = 1.0f;
+    corBorda[1] = 0;
+    corBorda[2] = 0;
+  } else {
+    // Caso contrário, desenha normalmente e definimos a borda como preta
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    corBorda[0] = 0;
+    corBorda[1] = 0;
+    corBorda[2] = 0;
+  }
+
+  // Cor da caixa
   glColor3f(cor.r, cor.g, cor.b);
 
   glBegin(GL_QUADS);
@@ -325,7 +349,7 @@ void desenharCaixa(float pixelX, float pixelY, Cor cor) {
   glEnd();
 
   // Desenha a borda
-  glColor3f(0.0f, 0.0f, 0.0f);
+  glColor3fv(corBorda);
   glLineWidth(2.0f);
   glBegin(GL_LINE_LOOP);
   glVertex2f(normalizadoX - tamanhonormalizado / 2,
@@ -338,6 +362,11 @@ void desenharCaixa(float pixelX, float pixelY, Cor cor) {
              normalizadoY + tamanhonormalizado / 2);
   glEnd();
   glLineWidth(1.0f);
+
+  // Saimos do modo wireframe para garantir que as próximas caixas sejam
+  // desenhadas normalmente e com o tamanho correto
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  TAMANHO_CAIXA = 60.0f;
 }
 
 // Função para desenhar todas as caixas visíveis (máximo 3)
