@@ -679,16 +679,6 @@ void teclado(unsigned char tecla, int x, int y) {
     printf("Caixa Verde adicionada (Total: %lu)\n", listaDeCaixas.size());
     break;
   }
-  case '4': {
-    if (!listaDeCaixas.empty()) {
-      delete listaDeCaixas.front();
-      listaDeCaixas.erase(listaDeCaixas.begin());
-      printf("Caixa removida (Total: %lu)\n", listaDeCaixas.size());
-    } else {
-      printf("Nenhuma caixa para remover!\n");
-    }
-    break;
-  }
   case ' ': {
     // Verifica se a caixa apanhada está acima de um caixote e tenta deposita-la
     depositarCaixa();
