@@ -640,6 +640,41 @@ void display() {
   glutSwapBuffers();
 }
 
+void menu() {
+  printf("\n");
+  printf("=============================================================\n");
+  printf("                    PAINEL DE BORDO\n");
+  printf("               Manual do Operador - Controlo\n");
+  printf("=============================================================\n");
+  printf("\n");
+
+  printf("  MOVIMENTO DO BRAÇO ROBÓTICO\n");
+  printf("  -----------------------------------------------------------\n");
+  printf("    Setas Direcionais   -> Rotacao principal\n");
+  printf("    W / S               -> Movimento do Ombro\n");
+  printf("    A / D               -> Movimento do Cotovelo\n");
+  printf("    Q / E               -> Movimento da Mão\n");
+  printf("\n");
+
+  printf("  INTERAÇÃO\n");
+  printf("  -----------------------------------------------------------\n");
+  printf("    ESPAÇO              -> Agarrar / Largar Pacote\n");
+  printf("\n");
+
+  printf("  GERAÇÃO DE PACOTES (Modo de Teste)\n");
+  printf("  -----------------------------------------------------------\n");
+  printf("    Tecla 1             -> Gerar Pacote Tipo Vermelho\n");
+  printf("    Tecla 2             -> Gerar Pacote Tipo Azul\n");
+  printf("    Tecla 3             -> Gerar Pacote Tipo Verde\n");
+  printf("\n");
+
+  printf("=============================================================\n");
+  printf("  NOTA: Utilize as teclas conforme indicado acima.\n");
+  printf("        Consulte este painel clicando na tecla H.\n");
+  printf("=============================================================\n");
+  printf("\n");
+}
+
 // Função para lidar com os comandos do teclado
 void teclado(unsigned char tecla, int x, int y) {
   switch (tecla) {
@@ -701,25 +736,33 @@ void teclado(unsigned char tecla, int x, int y) {
     break;
   }
   // Controles do braço robótico
-  case 'h':
-    anguloOmbro += 5.0f;
-    break;
-  case 'l':
-    anguloOmbro -= 5.0f;
-    break;
-  case 'j':
-    anguloCotovelo += 5.0f;
-    break;
-  case 'k':
-    anguloCotovelo -= 5.0f;
-    break;
   case 's':
   case 'S':
-    anguloMao += 5.0f;
+    anguloOmbro += 5.0f;
     break;
   case 'w':
   case 'W':
+    anguloOmbro -= 5.0f;
+    break;
+  case 'a':
+  case 'A':
+    anguloCotovelo += 5.0f;
+    break;
+  case 'd':
+  case 'D':
+    anguloCotovelo -= 5.0f;
+    break;
+  case 'e':
+  case 'E':
+    anguloMao += 5.0f;
+    break;
+  case 'q':
+  case 'Q':
     anguloMao -= 5.0f;
+    break;
+  case 'h':
+  case 'H':
+    menu();
     break;
   case 27: // Tecla ESC
     exit(0);
@@ -740,6 +783,8 @@ int main(int argc, char **argv) {
   int alturaEcra = glutGet(GLUT_SCREEN_HEIGHT);
   glutInitWindowPosition((larguraEcra - LARGURA_JANELA) / 2,
                          (alturaEcra - ALTURA_JANELA) / 2);
+
+  menu();
 
   glutCreateWindow("Robotic Arm Program");
 
