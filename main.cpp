@@ -405,14 +405,15 @@ void desenharTodosCaixotes() {
 // Função para verificar se a caixa apanhada está acima de um caixote
 // Retorna o índice do caixote se estiver acima, ou -1 caso contrário
 // NOTA: Esta função itera sobre todos os caixotes (máximo 3)
-// Para nosso caso de uso, não há preocupação com a performance pois o número de
-// caixotes é pequeno
 int verificarSobreCaixote(float caixaX, float caixaY) {
   float margem = 0.05f; // Margem de tolerância em coordenadas normalizadas
 
+  // Vamos verificar cada caixote para ver se a caixa apanhada está dentro dos
+  // limites horizontais e verticais do caixote, considerando a margem de
+  // tolerância
   for (int i = 0; i < NUM_CAIXOTES; i++) {
-    float caixoteLargura = 0.15f;
-    float caixoteAltura = 0.15f;
+    float caixoteLargura = 0.20f;
+    float caixoteAltura = 0.20f;
 
     // Verifica se a caixa está dentro dos limites horizontais e verticais do
     // caixote
