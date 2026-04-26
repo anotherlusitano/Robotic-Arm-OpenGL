@@ -600,6 +600,103 @@ void desenharTodasAsCaixas() {
   }
 }
 
+// Função para desenhar a barreira 3D do tapete
+void desenharBarreira() {
+  glPushMatrix();
+
+  const float larguraBarreira = 0.1f;
+  const float alturaBarreira = 0.35f;
+  const float profundidadeBarreira = 0.15f;
+
+  glTranslatef(0.2f, -0.70f, -0.2f); // Move a barreira para baixo
+
+  glRotatef(-10.0f, 1.0f, 0.0f, 0.0f); // Rotação em X
+  glRotatef(45.0f, 0.0f, 1.0f, 0.0f);  // Rotação em Y
+
+  float metadeLarguraB = larguraBarreira / 2.0f;
+  float metadeAlturaB = alturaBarreira / 2.0f;
+  float metadeProfB = profundidadeBarreira / 2.0f;
+
+  // Cor laranja
+  Cor laranja = {1.0f, 0.6f, 0.0f};
+
+  glBegin(GL_QUADS);
+  // Face frontal
+  glColor3f(laranja.r, laranja.g, laranja.b);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, metadeProfB);
+
+  // Face traseira
+  glColor3f(laranja.r * 0.7f, laranja.g * 0.7f, laranja.b * 0.7f);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, -metadeProfB);
+
+  // Face superior
+  glColor3f(laranja.r * 0.9f, laranja.g * 0.9f, laranja.b * 0.9f);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, -metadeProfB);
+
+  // Face inferior
+  glColor3f(laranja.r * 0.8f, laranja.g * 0.8f, laranja.b * 0.8f);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, metadeProfB);
+
+  // Face direita
+  glColor3f(laranja.r * 0.85f, laranja.g * 0.85f, laranja.b * 0.85f);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, metadeProfB);
+
+  // Face esquerda
+  glColor3f(laranja.r * 0.75f, laranja.g * 0.75f, laranja.b * 0.75f);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glEnd();
+
+  // Desenha as arestas da barreira
+  glColor3f(0.0f, 0.0f, 0.0f);
+  glLineWidth(2.0f);
+
+  glBegin(GL_LINE_LOOP);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, metadeProfB);
+  glEnd();
+
+  glBegin(GL_LINE_LOOP);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glEnd();
+
+  glBegin(GL_LINES);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, -metadeAlturaB, -metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, metadeProfB);
+  glVertex3f(-metadeLarguraB, metadeAlturaB, -metadeProfB);
+  glEnd();
+  glLineWidth(1.0f);
+
+  glPopMatrix();
+}
+
 void desenharTapete(void) {
   const float larguraTapete = 1.65f;
   const float alturaTapete = 0.3f;
@@ -649,22 +746,7 @@ void desenharTapete(void) {
   glPopMatrix();
 
   // Desenhar Barreira do tapete
-  glPushMatrix();
-  const float larguraBarreira = 0.1f;
-  const float alturaBarreira = 0.4f;
-
-  glTranslatef(0.2f, -0.70f, 0.0f); // Move a barreira para baixo
-  glColor3f(1.0f, 0.6f, 0);
-
-  // Barreira do tapete
-  glBegin(GL_QUADS);
-  glVertex3f(-larguraBarreira / 2, -alturaBarreira / 2, -0.18f);
-  glVertex3f(larguraBarreira / 2, -alturaBarreira / 2, -0.18f);
-  glVertex3f(larguraBarreira / 2, alturaBarreira / 2, -0.18f);
-  glVertex3f(-larguraBarreira / 2, alturaBarreira / 2, -0.18f);
-  glEnd();
-
-  glPopMatrix();
+  desenharBarreira();
 }
 
 // Função para desenhar a caixa apanhada pelo braço robótico
