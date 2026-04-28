@@ -996,12 +996,12 @@ void menu() {
   printf("    Setas Direcionais   -> Rotacao principal\n");
   printf("    W / S               -> Movimento do Ombro\n");
   printf("    A / D               -> Movimento do Cotovelo\n");
-  printf("    Q / E               -> Movimento da Mão\n");
+  printf("    Q / E               -> Movimento da Mao\n");
   printf("\n");
 
   printf("  INTERACAO\n");
   printf("  -----------------------------------------------------------\n");
-  printf("    ESPAÇO              -> Agarrar / Largar Pacote\n");
+  printf("    ESPACO              -> Agarrar / Largar Pacote\n");
   printf("\n");
 
   printf("  GERACAO DE PACOTES (Modo de Teste)\n");
