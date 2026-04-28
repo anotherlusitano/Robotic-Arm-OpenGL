@@ -8,74 +8,74 @@
 const int LARGURA_JANELA = 800;
 const int ALTURA_JANELA = 600;
 
-// Configurações de exibição da caixa
-float TAMANHO_CAIXA = 60.0f;
-const float ESPACAMENTO_CAIXAS = 140.0f; // Espaço entre caixas
-const float POSICAO_Y_CAIXA = 100.0f;    // Distância do fundo
+// Configurações de exibição do pacote
+float TAMANHO_PACOTE = 60.0f;
+const float ESPACAMENTO_PACOTES = 140.0f; // Espaço entre pacotes
+const float POSICAO_Y_PACOTE = 100.0f;    // Distância do fundo
 
-// Definição dos tipos de caixas
-enum TipoCaixa { CAIXA_VERMELHA, CAIXA_AZUL, CAIXA_VERDE };
+// Definição dos tipos de pacotes
+enum TipoPacote { PACOTE_VERMELHO, PACOTE_AZUL, PACOTE_VERDE };
 
-// Função para converter o tipo da caixa em uma string legível
-const char *tipoCaixaToString(TipoCaixa tipo) {
+// Função para converter o tipo do pacote em uma string legível
+const char *tipoPacoteToString(TipoPacote tipo) {
   switch (tipo) {
-  case CAIXA_VERMELHA:
+  case PACOTE_VERMELHO:
     return "Vermelho";
-  case CAIXA_AZUL:
+  case PACOTE_AZUL:
     return "Azul";
-  case CAIXA_VERDE:
+  case PACOTE_VERDE:
     return "Verde";
   default:
     return "Desconecido";
   }
 }
 
-// Estrutura para representar a cor RGB de uma caixa ou caixote
+// Estrutura para representar a cor RGB de um pacote ou caixa
 struct Cor {
   float r;
   float g;
   float b;
 };
 
-// Estrutura para representar uma caixa
+// Estrutura para representar um pacote
+struct Pacote {
+  TipoPacote tipo; // Tipo do pacote
+  Cor cor;         // Cor do pacote
+  float x, y, z;   // Coordenadas do pacote
+};
+
+// Lista de pacotes disponíveis para serem apanhados (inicialmente vazia, as
+// pacotes são criadas pelo operador e destruidas quando o operador as apanha)
+std::vector<Pacote *> listaDePacotes = {};
+
+// Estrutura para representar uma caixa (recipiente para os pacotes)
 struct Caixa {
-  TipoCaixa tipo; // Tipo da caixa
-  Cor cor;        // Cor da caixa
-  float x, y, z;  // Coordenadas da caixa
+  float x, y;            // Coordenadas da caixa
+  TipoPacote tipoAceite; // Tipo de pacote que aceita
+  Cor cor;               // Cor da caixa
+  Cor textura;           // Cor da Textura da caixa
 };
 
-// Lista de caixas disponíveis para serem apanhadas (inicialmente vazia, as
-// caixas são criadas pelo operador e destruidas quando o operador as apanha)
-std::vector<Caixa *> listaDeCaixas = {};
-
-// Estrutura para representar um caixote (recipiente para as caixas)
-struct Caixote {
-  float x, y;           // Coordenadas do caixote
-  TipoCaixa tipoAceite; // Tipo de caixa que aceita
-  Cor cor;              // Cor do caixote
-  Cor textura;          // Cor da Textura do caixote
-};
-
-// Lista de caixotes com suas coordenadas e tipos que aceitam
+// Lista de caixas com suas coordenadas e tipos que aceitam
 // Nota: As coordenadas podem ser ajustadas conforme necessário
-const Caixote caixotes[] = {
-    // Caixote Vermelho (esquerda)
-    {-0.2f, 0.65f, CAIXA_VERMELHA, {1.0f, 0.0f, 0.0f}, {0.91f, 0.65f, 0.23f}},
-    // Caixote Azul (centro)
-    {0.2f, 0.65f, CAIXA_AZUL, {0.0f, 0.0f, 1.0f}, {0.91f, 0.65f, 0.23f}},
-    // Caixote Verde (direita)
-    {0.6f, 0.65f, CAIXA_VERDE, {0.0f, 1.0f, 0.0f}, {0.91f, 0.65f, 0.23f}}};
+const Caixa caixas[] = {
+    // Caixa Vermelha (esquerda)
+    {-0.2f, 0.65f, PACOTE_VERMELHO, {1.0f, 0.0f, 0.0f}, {0.91f, 0.65f, 0.23f}},
+    // Caixa Azul (centro)
+    {0.2f, 0.65f, PACOTE_AZUL, {0.0f, 0.0f, 1.0f}, {0.91f, 0.65f, 0.23f}},
+    // Caixa Verde (direita)
+    {0.6f, 0.65f, PACOTE_VERDE, {0.0f, 1.0f, 0.0f}, {0.91f, 0.65f, 0.23f}}};
 
-// Número de caixotes (usado para iterar sobre a lista de caixotes)
-const int NUM_CAIXOTES = 3;
+// Número de caixas (usado para iterar sobre a lista de caixas)
+const int NUM_CAIXAS = 3;
 
 // Variáveis globais para os ângulos do braço robótico
 float anguloOmbro = 180.0f;
 float anguloCotovelo = 0.0f;
 float anguloMao = 0.0f;
 
-// Variável global para rastrear a caixa apanhada
-Caixa *caixaApanhada = nullptr;
+// Variável global para rastrear o pacote apanhado
+Pacote *pacoteApanhado = nullptr;
 
 // Função para obter a posição dos dedos baseada nos ângulos do braço
 void obterPosicaoDedos(float &dedoX, float &dedoY) {
@@ -103,28 +103,29 @@ void obterPosicaoDedos(float &dedoX, float &dedoY) {
   dedoY = y;
 }
 
-// Função para verificar se os dedos estão a tocar a caixa
-bool dedoEstaATocarCaixa(float dedoX, float dedoY, Caixa *caixa) {
-  // Verifica se a caixa existe (se não houver caixa apanhada, não há toque)
-  if (caixa == nullptr)
+// Função para verificar se os dedos estão a tocar o pacote
+bool dedoEstaATocarPacote(float dedoX, float dedoY, Pacote *pacote) {
+  // Verifica se o pacote existe (se não houver pacote apanhado, não há toque)
+  if (pacote == nullptr)
     return false;
 
-  // Posição da caixa em coordenadas normalizadas (sempre no centro-inferior)
-  float caixaCentroX = 0.0f; // Centro do ecrã
-  float caixaCentroY = (2.0f * POSICAO_Y_CAIXA / ALTURA_JANELA) - 1.0f;
+  // Posição do pacote em coordenadas normalizadas (sempre no centro-inferior)
+  float pacoteCentroX = 0.0f; // Centro do ecrã
+  float pacoteCentroY = (2.0f * POSICAO_Y_PACOTE / ALTURA_JANELA) - 1.0f;
 
-  // Metade do tamanho da caixa em coordenadas normalizadas
-  float caixaMeioTamanho = (TAMANHO_CAIXA / LARGURA_JANELA);
+  // Metade do tamanho do pacote em coordenadas normalizadas
+  float pacoteMeioTamanho = (TAMANHO_PACOTE / LARGURA_JANELA);
 
-  // Verifica se o dedo está dentro dos limites da caixa (com alguma tolerância)
+  // Verifica se o dedo está dentro dos limites do pacote (com alguma
+  // tolerância)
   float tolerancia = 0.08f;
 
-  // O dedo está a tocar a caixa se estiver dentro dos limites horizontais e
-  // verticais da caixa, considerando a tolerância para facilitar o toque
-  return (dedoX >= caixaCentroX - caixaMeioTamanho - tolerancia &&
-          dedoX <= caixaCentroX + caixaMeioTamanho + tolerancia &&
-          dedoY >= caixaCentroY - caixaMeioTamanho - tolerancia &&
-          dedoY <= caixaCentroY + caixaMeioTamanho + tolerancia);
+  // O dedo está a tocar o pacote se estiver dentro dos limites horizontais e
+  // verticais do pacote, considerando a tolerância para facilitar o toque
+  return (dedoX >= pacoteCentroX - pacoteMeioTamanho - tolerancia &&
+          dedoX <= pacoteCentroX + pacoteMeioTamanho + tolerancia &&
+          dedoY >= pacoteCentroY - pacoteMeioTamanho - tolerancia &&
+          dedoY <= pacoteCentroY + pacoteMeioTamanho + tolerancia);
 }
 
 // Função para desenhar a base 3D do braço robótico
@@ -144,7 +145,7 @@ void desenharBaseBraco() {
   glPushMatrix();
 
   // Posiciona a base do braço robótico no centro inferior do ecrã,
-  // um pouco acima
+  // um pouco em cima
   glTranslatef(0.0f, -0.05f, 0.9f);
 
   // Aplica rotação 3D para perspectiva isométrica
@@ -231,7 +232,7 @@ void desenharBaseBraco() {
 // Function to draw the robotic arm
 void desenharRobo() {
   glPushMatrix();
-  // Move o robô para a esquerda para caber o ecrã e pegar a primeira caixa
+  // Move o robô para a esquerda para caber no ecrã e pegar o primeiro pacote
   glTranslatef(0.35f, 0.1f, -1.0f);
 
   // Desenha a base 3D do braço robótico
@@ -307,11 +308,11 @@ void desenharRobo() {
   glPopMatrix();
 }
 
-// Função para desenhar um único caixote em coordenadas normalizadas
-void desenharCaixote(float x, float y, Cor cor, Cor textura) {
-  float largura = 0.20f;      // Largura do caixote em coordenadas normalizadas
-  float altura = 0.20f;       // Altura do caixote em coordenadas normalizadas
-  float profundidade = 0.21f; // Profundidade do caixote
+// Função para desenhar uma única caixa em coordenadas normalizadas
+void desenharCaixa(float x, float y, Cor cor, Cor textura) {
+  float largura = 0.20f;      // Largura da caixa em coordenadas normalizadas
+  float altura = 0.20f;       // Altura da caixa em coordenadas normalizadas
+  float profundidade = 0.21f; // Profundidade da caixa
 
   // Metade das dimensões para desenhar a partir do centro (centralizado)
   float metadeLargura = largura / 2.0f;
@@ -319,7 +320,7 @@ void desenharCaixote(float x, float y, Cor cor, Cor textura) {
   float metadeProf = profundidade / 2.0f;
 
   glPushMatrix();
-  glTranslatef(x, y, 0.25f); // Posiciona o caixote
+  glTranslatef(x, y, 0.25f); // Posiciona a caixa
 
   // Aplica rotação 3D para perspectiva isométrica
   glRotatef(45.0f, -1.5f, 1.0f, 0.0f); // Rotação em Y
@@ -360,10 +361,10 @@ void desenharCaixote(float x, float y, Cor cor, Cor textura) {
   glVertex3f(-metadeLargura, metadeAltura, -metadeProf);
   glVertex3f(-metadeLargura, -metadeAltura, -metadeProf);
 
-  // SEM FACE SUPERIOR (abertura para receber as caixas)
+  // SEM FACE SUPERIOR (abertura para receber os pacotes)
   glEnd();
 
-  // Desenha as arestas do caixote
+  // Desenha as arestas da caixa
   glColor3f(0.0f, 0.0f, 0.0f);
   glLineWidth(2.0f);
 
@@ -407,114 +408,113 @@ void desenharCaixote(float x, float y, Cor cor, Cor textura) {
   glPopMatrix();
 }
 
-// Função para desenhar todos os caixotes
-void desenharTodosCaixotes() {
-  // Itera sobre a lista de caixotes e desenha cada um usando a função
-  // desenharCaixote
-  for (int i = 0; i < NUM_CAIXOTES; i++) {
-    desenharCaixote(caixotes[i].x, caixotes[i].y, caixotes[i].cor,
-                    caixotes[i].textura);
+// Função para desenhar todas as caixas
+void desenharTodasCaixas() {
+  // Itera sobre a lista de caixas e desenha cada um usando a função
+  // desenharCaixa
+  for (int i = 0; i < NUM_CAIXAS; i++) {
+    desenharCaixa(caixas[i].x, caixas[i].y, caixas[i].cor, caixas[i].textura);
   }
 }
 
-// Função para verificar se a caixa apanhada está acima de um caixote
-// Retorna o índice do caixote se estiver acima, ou -1 caso contrário
-// NOTA: Esta função itera sobre todos os caixotes (máximo 3)
-int verificarSobreCaixote(float caixaX, float caixaY) {
+// Função para verificar se o pacote apanhado está em cima de uma caixa
+// Retorna o índice da caixa se estiver em cima, ou -1 caso contrário
+// NOTA: Esta função itera sobre todos as caixas (máximo 3)
+int verificarSobreCaixa(float pacoteX, float pacoteY) {
   float margem = 0.05f; // Margem de tolerância em coordenadas normalizadas
 
-  // Vamos verificar cada caixote para ver se a caixa apanhada está dentro dos
-  // limites horizontais e verticais do caixote, considerando a margem de
+  // Vamos verificar cada caixa para ver se o pacote apanhado está dentro dos
+  // limites horizontais e verticais da caixa, considerando a margem de
   // tolerância
-  for (int i = 0; i < NUM_CAIXOTES; i++) {
-    float caixoteLargura = 0.20f;
-    float caixoteAltura = 0.20f;
+  for (int i = 0; i < NUM_CAIXAS; i++) {
+    float caixaLargura = 0.20f;
+    float caixaAltura = 0.20f;
 
-    // Verifica se a caixa está dentro dos limites horizontais e verticais do
-    // caixote
-    if (caixaX >= caixotes[i].x - caixoteLargura / 2 - margem &&
-        caixaX <= caixotes[i].x + caixoteLargura / 2 + margem &&
-        caixaY >= caixotes[i].y - caixoteAltura / 2 - margem &&
-        caixaY <= caixotes[i].y + caixoteAltura / 2 + margem) {
-      return i; // Retorna o índice do caixote
+    // Verifica se o pacote está dentro dos limites horizontais e verticais da
+    // caixa
+    if (pacoteX >= caixas[i].x - caixaLargura / 2 - margem &&
+        pacoteX <= caixas[i].x + caixaLargura / 2 + margem &&
+        pacoteY >= caixas[i].y - caixaAltura / 2 - margem &&
+        pacoteY <= caixas[i].y + caixaAltura / 2 + margem) {
+      return i; // Retorna o índice da caixa
     }
   }
 
-  return -1; // Não encontrou nenhum caixote
+  return -1; // Não encontrou nenhuma caixa
 }
 
-// Função para depositar a caixa apanhada num caixote
-// Verifica se o tipo da caixa corresponde ao tipo que o caixote aceita
-void depositarCaixa() {
-  // Verifica se há uma caixa apanhada para depositar
-  if (caixaApanhada == nullptr) {
-    printf("Nenhuma caixa apanhada para depositar!\n");
+// Função para depositar o pacote apanhado numa caixa
+// Verifica se o tipo do pacote corresponde ao tipo que a caixa aceita
+void depositarPacote() {
+  // Verifica se há um pacote apanhado para depositar
+  if (pacoteApanhado == nullptr) {
+    printf("Nenhum pacote apanhado para depositar!\n");
     return;
   }
 
-  // Obtém a posição atual da caixa apanhada
+  // Obtém a posição atual do pacote apanhado
   float dedoX, dedoY;
 
-  // Nota: A posição dos dedos é usada para determinar onde a caixa apanhada
-  // está, já que a caixa segue os dedos. Portanto, usamos a função
+  // Nota: A posição dos dedos é usada para determinar onde o pacote apanhado
+  // está, já que o pacote segue os dedos. Portanto, usamos a função
   // obterPosicaoDedos para obter as coordenadas atuais dos dedos, que
-  // correspondem à posição da caixa apanhada.
+  // correspondem à posição do pacote apanhado.
   obterPosicaoDedos(dedoX, dedoY);
 
-  // Verifica se está acima de algum caixote
-  int indiceCaixote = verificarSobreCaixote(dedoX, dedoY);
+  // Verifica se está em cima de alguma caixa
+  int indiceCaixa = verificarSobreCaixa(dedoX, dedoY);
 
-  // Se não estiver acima de nenhum caixote, exibe uma mensagem de erro e
+  // Se não estiver em cima de nenhuma caixa, exibe uma mensagem de erro e
   // retorna
-  if (indiceCaixote == -1) {
-    printf("Caixa não está em cima de nenhum caixote!\n");
+  if (indiceCaixa == -1) {
+    printf("Pacote não está em cima de nenhuma caixa!\n");
     return;
   }
 
-  // Verifica se o tipo da caixa corresponde ao tipo que o caixote aceita
-  if (caixaApanhada->tipo == caixotes[indiceCaixote].tipoAceite) {
-    // Sucesso! Deposita a caixa
-    delete caixaApanhada;
-    caixaApanhada = nullptr;
-    printf("Caixa depositada com sucesso!\n");
+  // Verifica se o tipo do pacote corresponde ao tipo que a caixa aceita
+  if (pacoteApanhado->tipo == caixas[indiceCaixa].tipoAceite) {
+    // Sucesso! Deposita o pacote
+    delete pacoteApanhado;
+    pacoteApanhado = nullptr;
+    printf("Pacote depositado com sucesso!\n");
 
-    // Descomentar a linha abaixo para mostrar quantas caixas faltam.
-    // printf("Caixas restantes: %lu\n", listaDeCaixas.size());
+    // Descomentar a linha abaixo para mostrar quantos pacotes faltam.
+    // printf("Pacotes restantes: %lu\n", listaDePacotes.size());
   } else {
-    printf("Erro: A caixa do tipo %s não pode ser depositada no caixote que "
+    printf("Erro: O pacote do tipo %s não pode ser depositado na caixa que "
            "aceita o tipo %s!\n",
-           tipoCaixaToString(caixaApanhada->tipo),
-           tipoCaixaToString(caixotes[indiceCaixote].tipoAceite));
+           tipoPacoteToString(pacoteApanhado->tipo),
+           tipoPacoteToString(caixas[indiceCaixa].tipoAceite));
   }
 }
 
-// Função para desenhar uma única caixa numa posição determinada (em coordenadas
-// de pixel)
-void desenharCaixa(float pixelX, float pixelY, Cor cor) {
+// Função para desenhar um único pacote numa posição determinada (em
+// coordenadas de pixel)
+void desenharPacote(float pixelX, float pixelY, Cor cor) {
   // Converte coordenadas de pixel para coordenadas normalizadas
   // de OpenGL (-1 a 1)
   float normalizadoX = (2.4f * pixelX / LARGURA_JANELA) - 1.0f;
   float normalizadoY = (2.15f * pixelY / ALTURA_JANELA) - 1.0f;
   float normalizadoZ = -0.25f; // Profundidade padrão
 
-  // Fazer que as caixas azuis sejam desenhadas com tamanho reduzido
+  // Fazer que os pacotes azuis sejam desenhados com tamanho reduzido
   if (cor.b == 1.0f) {
-    TAMANHO_CAIXA = 45.0f;
+    TAMANHO_PACOTE = 45.0f;
   }
 
-  // Converte tamanho da caixa de pixels para coordenadas normalizadas
-  float tamanhonormalizado = (2.0f * TAMANHO_CAIXA / LARGURA_JANELA);
+  // Converte tamanho do pacote de pixels para coordenadas normalizadas
+  float tamanhonormalizado = (2.0f * TAMANHO_PACOTE / LARGURA_JANELA);
 
   // Mesma profundidade para manter proporção cúbica
   float profundidade = tamanhonormalizado;
 
-  // Metade do tamanho da caixa para desenhar a partir do centro (centralizado)
+  // Metade do tamanho do pacote para desenhar a partir do centro (centralizado)
   float meia = tamanhonormalizado / 2.0f;
   float meiaProf = profundidade / 2.0f;
 
   glPushMatrix();
 
-  // Fazer que as caixas vermelhas sejam desenhadas em modo wireframe
+  // Fazer que os pacotes vermelhos sejam desenhados em modo wireframe
   if (cor.r == 1.0f) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Ativa modo wireframe
   }
@@ -569,7 +569,7 @@ void desenharCaixa(float pixelX, float pixelY, Cor cor) {
   glVertex3f(normalizadoX - meia, normalizadoY - meia, normalizadoZ - meiaProf);
   glEnd();
 
-  // Desenha as arestas da caixa
+  // Desenha as arestas do pacote
   glColor3f(0.0f, 0.0f, 0.0f);
   glLineWidth(2.0f);
   glBegin(GL_LINE_LOOP);
@@ -599,33 +599,33 @@ void desenharCaixa(float pixelX, float pixelY, Cor cor) {
   glLineWidth(1.0f);
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Ativa modo preenchido
-  TAMANHO_CAIXA = 60.0f; // Voltar ao tamanho padrão para as próximas caixas
+  TAMANHO_PACOTE = 60.0f; // Voltar ao tamanho padrão para os próximos pacotes
 
   glPopMatrix();
 }
 
-// Função para desenhar todas as caixas visíveis (máximo 4)
-void desenharTodasAsCaixas() {
+// Função para desenhar todos os pacotes visíveis (máximo 4)
+void desenharTodosPacotes() {
   // Exibe os primeiros 4 elementos da lista
   // Posição 0 (centro-inferior): índice 0 da lista
   // Posição 1 (meio): índice 1 da lista
   // Posição 2 (esquerda): índice 2 da lista
   // Posição 3 (mais à esquerda): índice 3 da lista
 
-  // Calcula quantas caixas existem na lista e quantas devem ser exibidas
-  int tamanho = listaDeCaixas.size();
+  // Calcula quantos pacotes existem na lista e quantos devem ser exibidos
+  int tamanho = listaDePacotes.size();
   int contaExibicao = (tamanho > 4) ? 4 : tamanho;
 
   // Calcula posição central
   float centroX = LARGURA_JANELA / 2.0f;
-  float baseY = POSICAO_Y_CAIXA;
+  float baseY = POSICAO_Y_PACOTE;
 
-  // Desenha as primeiras caixas da contaExibicao
+  // Desenha os primeiros pacotes da contaExibicao
   for (int i = 0; i < contaExibicao; i++) {
     // Posição: centro, depois esquerda, depois mais à esquerda
-    float posicaoX = centroX - (i * ESPACAMENTO_CAIXAS);
+    float posicaoX = centroX - (i * ESPACAMENTO_PACOTES);
 
-    desenharCaixa(posicaoX, baseY, listaDeCaixas[i]->cor);
+    desenharPacote(posicaoX, baseY, listaDePacotes[i]->cor);
   }
 }
 
@@ -795,23 +795,23 @@ void desenharTapete(void) {
   desenharBarreira();
 }
 
-// Função para desenhar a caixa apanhada pelo braço robótico
-// Aplica as mesmas transformações do braço para que a caixa siga a mão
-void desenharCaixaApanhada() {
-  // Verifica se há uma caixa apanhada para desenhar
-  if (caixaApanhada == nullptr) {
+// Função para desenhar o pacote apanhado pelo braço robótico
+// Aplica as mesmas transformações do braço para que o pacote siga a mão
+void desenharPacoteApanhado() {
+  // Verifica se há um pacote apanhado para desenhar
+  if (pacoteApanhado == nullptr) {
     return;
   }
 
   glPushMatrix();
 
-  // Fazer que as caixas vermelhas sejam desenhadas em modo wireframe
-  if (caixaApanhada->cor.r == 1.0f) {
+  // Fazer que os pacotes vermelhos sejam desenhados em modo wireframe
+  if (pacoteApanhado->cor.r == 1.0f) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Ativa modo wireframe
   }
-  // Fazer que as caixas azuis sejam desenhadas com tamanho reduzido
-  if (caixaApanhada->cor.b == 1.0f) {
-    TAMANHO_CAIXA = 45.0f;
+  // Fazer que os pacotes azuis sejam desenhados com tamanho reduzido
+  if (pacoteApanhado->cor.b == 1.0f) {
+    TAMANHO_PACOTE = 45.0f;
   }
 
   // Aplica as MESMAS transformações do braço robótico
@@ -831,63 +831,64 @@ void desenharCaixaApanhada() {
   glRotatef(45.0f, 0.0f, 1.0f, 0.0f);  // Rotação em Y
 
   // Cálculos de dimensão
-  float tamanhoNormalizado = (2.0f * TAMANHO_CAIXA / LARGURA_JANELA);
+  float tamanhoNormalizado = (2.0f * TAMANHO_PACOTE / LARGURA_JANELA);
   float meia = tamanhoNormalizado / 2.0f;
   float meiaProf = tamanhoNormalizado / 2.0f;
 
-  // Desenha a caixa apanhada usando as mesmas faces e arestas que a função
-  // desenharCaixa mas com as transformações do braço robótico para que a caixa
-  // siga a mão
+  // Desenha o pacote apanhado usando as mesmas faces e arestas que a função
+  // desenharPacote mas com as transformações do braço robótico para que o
+  // pacote siga a mão
   glBegin(GL_QUADS);
   // Face frontal
-  glColor3f(caixaApanhada->cor.r, caixaApanhada->cor.g, caixaApanhada->cor.b);
+  glColor3f(pacoteApanhado->cor.r, pacoteApanhado->cor.g,
+            pacoteApanhado->cor.b);
   glVertex3f(-meia, -meia, meiaProf);
   glVertex3f(meia, -meia, meiaProf);
   glVertex3f(meia, meia, meiaProf);
   glVertex3f(-meia, meia, meiaProf);
 
   // Face traseira
-  glColor3f(caixaApanhada->cor.r * 0.7f, caixaApanhada->cor.g * 0.7f,
-            caixaApanhada->cor.b * 0.7f);
+  glColor3f(pacoteApanhado->cor.r * 0.7f, pacoteApanhado->cor.g * 0.7f,
+            pacoteApanhado->cor.b * 0.7f);
   glVertex3f(-meia, -meia, -meiaProf);
   glVertex3f(-meia, meia, -meiaProf);
   glVertex3f(meia, meia, -meiaProf);
   glVertex3f(meia, -meia, -meiaProf);
 
   // Face superior
-  glColor3f(caixaApanhada->cor.r * 0.9f, caixaApanhada->cor.g * 0.9f,
-            caixaApanhada->cor.b * 0.9f);
+  glColor3f(pacoteApanhado->cor.r * 0.9f, pacoteApanhado->cor.g * 0.9f,
+            pacoteApanhado->cor.b * 0.9f);
   glVertex3f(-meia, meia, meiaProf);
   glVertex3f(meia, meia, meiaProf);
   glVertex3f(meia, meia, -meiaProf);
   glVertex3f(-meia, meia, -meiaProf);
 
   // Face inferior
-  glColor3f(caixaApanhada->cor.r * 0.8f, caixaApanhada->cor.g * 0.8f,
-            caixaApanhada->cor.b * 0.8f);
+  glColor3f(pacoteApanhado->cor.r * 0.8f, pacoteApanhado->cor.g * 0.8f,
+            pacoteApanhado->cor.b * 0.8f);
   glVertex3f(-meia, -meia, meiaProf);
   glVertex3f(-meia, -meia, -meiaProf);
   glVertex3f(meia, -meia, -meiaProf);
   glVertex3f(meia, -meia, meiaProf);
 
   // Face direita
-  glColor3f(caixaApanhada->cor.r * 0.85f, caixaApanhada->cor.g * 0.85f,
-            caixaApanhada->cor.b * 0.85f);
+  glColor3f(pacoteApanhado->cor.r * 0.85f, pacoteApanhado->cor.g * 0.85f,
+            pacoteApanhado->cor.b * 0.85f);
   glVertex3f(meia, -meia, meiaProf);
   glVertex3f(meia, -meia, -meiaProf);
   glVertex3f(meia, meia, -meiaProf);
   glVertex3f(meia, meia, meiaProf);
 
   // Face esquerda
-  glColor3f(caixaApanhada->cor.r * 0.75f, caixaApanhada->cor.g * 0.75f,
-            caixaApanhada->cor.b * 0.75f);
+  glColor3f(pacoteApanhado->cor.r * 0.75f, pacoteApanhado->cor.g * 0.75f,
+            pacoteApanhado->cor.b * 0.75f);
   glVertex3f(-meia, -meia, meiaProf);
   glVertex3f(-meia, meia, meiaProf);
   glVertex3f(-meia, meia, -meiaProf);
   glVertex3f(-meia, -meia, -meiaProf);
   glEnd();
 
-  // Desenha as arestas da caixa
+  // Desenha as arestas do pacote
   glColor3f(0.0f, 0.0f, 0.0f);
   glLineWidth(2.0f);
   glBegin(GL_LINE_LOOP);
@@ -917,7 +918,7 @@ void desenharCaixaApanhada() {
   glLineWidth(1.0f);
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Ativa modo preenchido
-  TAMANHO_CAIXA = 60.0f; // Voltar ao tamanho padrão para as próximas caixas
+  TAMANHO_PACOTE = 60.0f; // Voltar ao tamanho padrão para os próximos pacotes
 
   glPopMatrix();
 }
@@ -930,10 +931,10 @@ void display() {
   // Desenha os elementos da cena na ordem correta para
   // garantir a sobreposição adequada
   desenharTapete();
-  desenharTodasAsCaixas();
+  desenharTodosPacotes();
   desenharRobo();
-  desenharTodosCaixotes();
-  desenharCaixaApanhada();
+  desenharTodasCaixas();
+  desenharPacoteApanhado();
 
   glutSwapBuffers();
 }
@@ -947,7 +948,7 @@ void menu() {
   printf("=============================================================\n");
   printf("\n");
 
-  printf("  MOVIMENTO DO BRAÇO ROBÓTICO\n");
+  printf("  MOVIMENTO DO BRACO ROBOTICO\n");
   printf("  -----------------------------------------------------------\n");
   printf("    Setas Direcionais   -> Rotacao principal\n");
   printf("    W / S               -> Movimento do Ombro\n");
@@ -955,12 +956,12 @@ void menu() {
   printf("    Q / E               -> Movimento da Mão\n");
   printf("\n");
 
-  printf("  INTERAÇÃO\n");
+  printf("  INTERACAO\n");
   printf("  -----------------------------------------------------------\n");
   printf("    ESPAÇO              -> Agarrar / Largar Pacote\n");
   printf("\n");
 
-  printf("  GERAÇÃO DE PACOTES (Modo de Teste)\n");
+  printf("  GERACAO DE PACOTES (Modo de Teste)\n");
   printf("  -----------------------------------------------------------\n");
   printf("    Tecla 1             -> Gerar Pacote Tipo Vermelho\n");
   printf("    Tecla 2             -> Gerar Pacote Tipo Azul\n");
@@ -978,67 +979,68 @@ void menu() {
 void teclado(unsigned char tecla, int x, int y) {
   switch (tecla) {
   case '1': {
-    // Cria uma nova caixa vermelha e adiciona à lista
-    Caixa *caixaVermelha = new Caixa();
-    caixaVermelha->tipo = CAIXA_VERMELHA;
-    caixaVermelha->cor = {1.0f, 0.0f, 0.0f};
-    caixaVermelha->x = -1.0f;
-    caixaVermelha->z = 0.0f;
+    // Cria um novo pacote vermelho e adiciona à lista
+    Pacote *pacoteVermelho = new Pacote();
+    pacoteVermelho->tipo = PACOTE_VERMELHO;
+    pacoteVermelho->cor = {1.0f, 0.0f, 0.0f};
+    pacoteVermelho->x = -1.0f;
+    pacoteVermelho->z = 0.0f;
 
-    listaDeCaixas.push_back(caixaVermelha);
+    listaDePacotes.push_back(pacoteVermelho);
 
-    printf("Caixa Vermelha adicionada (Total: %lu)\n", listaDeCaixas.size());
+    printf("Pacote Vermelho adicionado (Total: %lu)\n", listaDePacotes.size());
     break;
   }
   case '2': {
-    // Cria uma nova caixa azul e adiciona à lista
-    Caixa *caixaAzul = new Caixa();
-    caixaAzul->tipo = CAIXA_AZUL;
-    caixaAzul->cor = {0.0f, 0.0f, 1.0f};
-    caixaAzul->x = -1.0f;
-    caixaAzul->z = 0.0f;
+    // Cria um novo pacote azul e adiciona à lista
+    Pacote *pacoteAzul = new Pacote();
+    pacoteAzul->tipo = PACOTE_AZUL;
+    pacoteAzul->cor = {0.0f, 0.0f, 1.0f};
+    pacoteAzul->x = -1.0f;
+    pacoteAzul->z = 0.0f;
 
-    listaDeCaixas.push_back(caixaAzul);
+    listaDePacotes.push_back(pacoteAzul);
 
-    printf("Caixa Azul adicionada (Total: %lu)\n", listaDeCaixas.size());
+    printf("Pacote Azul adicionado (Total: %lu)\n", listaDePacotes.size());
     break;
   }
   case '3': {
-    // Cria uma nova caixa verde e adiciona à lista
-    Caixa *caixaVerde = new Caixa();
-    caixaVerde->tipo = CAIXA_VERDE;
-    caixaVerde->cor = {0.0f, 1.0f, 0.0f};
-    caixaVerde->x = -1.0f;
-    caixaVerde->z = 0.0f;
+    // Cria um novo pacote verde e adiciona à lista
+    Pacote *pacoteVerde = new Pacote();
+    pacoteVerde->tipo = PACOTE_VERDE;
+    pacoteVerde->cor = {0.0f, 1.0f, 0.0f};
+    pacoteVerde->x = -1.0f;
+    pacoteVerde->z = 0.0f;
 
-    listaDeCaixas.push_back(caixaVerde);
+    listaDePacotes.push_back(pacoteVerde);
 
-    printf("Caixa Verde adicionada (Total: %lu)\n", listaDeCaixas.size());
+    printf("Pacote Verde adicionado (Total: %lu)\n", listaDePacotes.size());
     break;
   }
   case ' ': {
-    // Verifica se a caixa apanhada está acima de um caixote e tenta deposita-la
-    depositarCaixa();
+    // Verifica se o pacote apanhado está em cima de uma caixa e tenta
+    // deposita-lo
+    depositarPacote();
 
-    // Se ainda não há caixa apanhada, tenta pegar uma caixa da lista
-    if (!listaDeCaixas.empty()) {
+    // Se ainda não há pacote apanhado, tenta pegar um pacote da lista
+    if (!listaDePacotes.empty()) {
       float dedoX, dedoY;
 
       // `obterPosicaoDedos` é uma função que calcula a posição dos dedos com
       // base nos ângulos do braço robótico.
       obterPosicaoDedos(dedoX, dedoY);
 
-      // `dedoEstaATocarCaixa` é uma função que verifica se a posição dos dedos
-      // está tocando a caixa na posição 0 da lista (a caixa mais à direita, que
-      // é a que o braço pode alcançar).
-      bool tocando = dedoEstaATocarCaixa(dedoX, dedoY, listaDeCaixas[0]);
+      // `dedoEstaATocarPacote` é uma função que verifica se a posição dos dedos
+      // está a tocar o pacote na posição 0 da lista (o pacote mais à direita,
+      // que é o que o braço pode alcançar).
+      bool tocando = dedoEstaATocarPacote(dedoX, dedoY, listaDePacotes[0]);
 
-      if (caixaApanhada == nullptr && tocando) {
-        // Cria uma NOVA caixa com uma CÓPIA dos dados (não apenas um ponteiro)
-        caixaApanhada = new Caixa(*listaDeCaixas[0]);
-        delete listaDeCaixas[0];
-        listaDeCaixas.erase(listaDeCaixas.begin());
-        printf("Caixa apanhada!\n");
+      if (pacoteApanhado == nullptr && tocando) {
+        // Cria um NOVO pacote com uma CÓPIA dos dados (não apenas um ponteiro)
+        pacoteApanhado = new Pacote(*listaDePacotes[0]);
+        delete listaDePacotes[0];
+        listaDePacotes.erase(listaDePacotes.begin());
+        printf("Pacote apanhado!\n");
       }
     }
     break;
