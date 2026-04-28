@@ -1,3 +1,46 @@
+//  === Resumo de cada componente do Programa ===
+//
+// ## Tipos e Classes
+//
+// TipoPacote - Enumeração dos tipos de pacotes (Vermelho, Azul, Verde)
+// Cor - Vector RGB (r, g, b) para cores dos componentes
+// Pacote - Estrutura de um pacote
+// Caixa - Estrutura do componente que os Pacotes vão ser ddepositados
+//
+// ## Funções de Cálculo
+//
+// obterPosicaoDedos - Calcula a posição dos dedos baseada nos ângulos do braço
+// dedoEstaATocarPacote - Verifica se os dedos estão a tocar um pacote
+// verificarSobreCaixa - Verifica se o pacote apanhado está em cima de uma caixa
+//
+// ## Funções de Renderização - Braço
+//
+// desenharBaseBraco - Desenha a base cinzenta em baixo do braço
+// desenharRobo - Desenha o braço robótico com 3 articulações
+// desenharPacoteApanhado - Desenha o pacote que está na mão do braço robótico
+//
+// ## Funções de Renderização - Objetos
+//
+// desenharCaixa - Desenha uma caixa individual em 3D
+// desenharTodasCaixas - Desenha todas as 3 caixas
+// desenharPacote - Desenha um pacote individual em 3D
+// desenharTodosPacotes - Desenha todos os pacotes (máximo 4)
+//
+// ## Funções de Renderização - Cenário
+//
+// desenharBarreira - Desenha a barreira que está depois do Tapete
+// desenharTapete - Desenha o Tapete
+//
+// ## Funções de Interface
+//
+// display - Renderiza toda a cena
+// menu - Exibe o menu de ajuda no terminal
+// teclado - Processa input de teclado do utilizador
+//
+// ## Função Principal
+//
+// main - Função principal para inciar todo programa
+
 #include <GL/freeglut.h>
 #define _USE_MATH_DEFINES
 #include <cmath>
